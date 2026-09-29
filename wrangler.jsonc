@@ -1,0 +1,66 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ryvox-web",
+  "main": ".open-next/worker.js",
+  "compatibility_date": "2026-09-15",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": {
+    "directory": ".open-next/assets",
+    "binding": "ASSETS"
+  },
+  "observability": { "enabled": true },
+  "routes": [
+    { "pattern": "ryvoxshop.com", "custom_domain": true },
+    { "pattern": "www.ryvoxshop.com", "custom_domain": true }
+  ],
+  "services": [
+    // Referencia a sí mismo, necesaria para la caché de páginas (ISR)
+    { "binding": "WORKER_SELF_REFERENCE", "service": "ryvox-web" }
+  ],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ryvox-db",
+      "database_id": "2fe6cf46-7c2a-4da5-b99f-7c7af2579067",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "kv_namespaces": [
+    // Caché de páginas regeneradas (ISR) de Next
+    { "binding": "NEXT_INC_CACHE_KV", "id": "39596109ec184c5c9f06bcf9f9572fc9" }
+  ],
+  "r2_buckets": [
+    // Fotos de producto subidas desde el panel (se sirven en /media/...)
+    { "binding": "MEDIA", "bucket_name": "ryvox-media" }
+  ],
+  "ratelimits": [
+    // Límite por IP para rutas públicas que llaman a una API externa de pago (Google Places, Shippo):
+    // sin esto, un script podría dispararlas miles de veces y generar cargos inesperados.
+    { "name": "API_RATE_LIMITER", "namespace_id": "1001", "simple": { "limit": 30, "period": 10 } }
+  ],
+  // FetchProxyDO (probado y descartado: la conexión a Stripe falla igual desde otra región de Cloudflare).
+  "migrations": [
+    { "tag": "v1", "new_sqlite_classes": ["FetchProxyDO"] },
+    { "tag": "v2", "deleted_classes": ["FetchProxyDO"] }
+  ],
+  "vars": {
+    "NEXT_PUBLIC_SITE_URL": "https://ryvoxshop.com",
+    "SITE_LOCKED": "false",
+    "SHIP_FROM_NAME": "Ryvox",
+    "SHIP_FROM_STREET1": "55 E Sunrise Hwy",
+    "SHIP_FROM_CITY": "Lindenhurst",
+    "SHIP_FROM_STATE": "NY",
+    "SHIP_FROM_ZIP": "11757",
+    "SHIP_FROM_COUNTRY": "US",
+    "SHIP_FROM_PHONE": "5165609734",
+    "SHIP_FROM_EMAIL": "info@ryvoxshop.com",
+    "EMAIL_FROM": "RYVOX <shopping@ryvoxshop.com>",
+    "EMAIL_REPLY_TO": "info@ryvoxshop.com",
+    "ADMIN_EMAIL": "shopryvox@gmail.com",
+    "ADMIN_NAME": "Ryvox",
+    "CF_ACCOUNT_ID": "55423a697d30cb51106c1c1a097b25cc"
+  }
+  // Secretos (no van aquí). Subirlos SIEMPRE con `scripts/put-secret.sh` (valida que no traigan caracteres
+  // invisibles; uno así rompió Stripe en producción): AUTH_SECRET / ADMIN_PASSWORD / STRIPE_SECRET_KEY /
+  // STRIPE_WEBHOOK_SECRET / SHIPPO_API_KEY / SHIPPO_WEBHOOK_SECRET / RESEND_API_KEY
+}

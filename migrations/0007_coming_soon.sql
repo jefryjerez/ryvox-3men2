@@ -1,0 +1,1 @@
+ALTER TABLE `products` ADD `coming_soon` integer DEFAULT false NOT NULL;

@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+@theme {
+  /* Paleta Ryvox */
+  --color-black: #000000;
+  --color-charcoal: #0d0d0d;
+  --color-graphite: #1a1a1a;
+  --color-steel: #262626;
+  --color-smoke: #333333;
+  --color-fog: #404040;
+  --color-white: #ffffff;
+
+  /* Superficies claras */
+  --color-mist: #e8e8e8;
+  --color-line: #d6d6d6;
+  --color-muted: #8a8a8a; /* estado pendiente: gris medio */
+
+  /* Único color de la interfaz: alerta */
+  --color-alert: #d93025;
+
+  --font-display: var(--font-unbounded), "Arial Black", sans-serif;
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--color-mist);
+  color: var(--color-black);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-black);
+  color: var(--color-white);
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+/* Utilidades de marca */
+@utility text-balance {
+  text-wrap: balance;
+}
+@utility container-x {
+  padding-inline: clamp(1.25rem, 4vw, 4rem);
+}
+@utility eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.6875rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+@utility display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+  font-weight: 700;
+}
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,1 @@
+ALTER TABLE `orders` ADD `lang` text DEFAULT 'es' NOT NULL;

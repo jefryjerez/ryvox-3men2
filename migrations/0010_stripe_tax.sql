@@ -1,0 +1,1 @@
+ALTER TABLE `orders` ADD `tax_calculation_id` text;
