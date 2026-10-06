@@ -1,4 +1,4 @@
-import { integer, real, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { integer, real, sqliteTable, text, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 /* Esquema para Cloudflare D1 (SQLite). Local y producción usan el mismo esquema. */
 
@@ -188,6 +188,21 @@ export const discountCodes = sqliteTable("discount_codes", {
   note: text("note"),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(now),
 });
+
+/** Correo de alguien que pidió que le avisen cuando un producto "Próximamente" salga a la venta. */
+export const notifyRequests = sqliteTable(
+  "notify_requests",
+  {
+    id: text("id").primaryKey(),
+    email: text("email").notNull(),
+    productId: text("product_id")
+      .notNull()
+      .references(() => products.id, { onDelete: "cascade" }),
+    lang: text("lang").notNull().default("es"),
+    createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(now),
+  },
+  (t) => [uniqueIndex("notify_requests_email_product").on(t.email, t.productId)],
+);
 
 export type ProductRow = typeof products.$inferSelect;
 export type CustomerRow = typeof customers.$inferSelect;

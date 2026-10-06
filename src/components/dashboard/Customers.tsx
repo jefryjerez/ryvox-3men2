@@ -2,11 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import { ArrowLeft, ChevronRight, Mail, MapPin, Phone } from "lucide-react";
+import { useMemo, useState, type FormEvent } from "react";
+import { ArrowLeft, ChevronRight, Mail, MapPin, Pencil, Phone } from "lucide-react";
 import { useAdmin } from "@/store/admin";
-import { orderTotal, type Order } from "@/lib/orders";
+import { orderTotal, type Customer, type Order } from "@/lib/orders";
 import { Card, PageHeader, StatusBadge, td, th } from "@/components/dashboard/ui";
+import { Button } from "@/components/ui/Button";
 import { useT } from "@/i18n/client";
 
 function initials(name: string) {
@@ -107,6 +108,92 @@ export function CustomersList() {
   );
 }
 
+const input = "h-10 w-full rounded-xl border border-line bg-white px-3 text-sm outline-none focus:border-black";
+
+/** Datos de contacto del cliente, con modo de edición (p. ej. para corregir un correo o teléfono mal escritos). */
+function CustomerInfoCard({ customer, total, count }: { customer: Customer; total: number; count: number }) {
+  const { t, f, money } = useT();
+  const c = t.dash.customers;
+  const updateCustomer = useAdmin((s) => s.updateCustomer);
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState({ name: "", email: "", phone: "", city: "", note: "" });
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function startEdit() {
+    setDraft({ name: customer.name, email: customer.email, phone: customer.phone, city: customer.city, note: customer.note ?? "" });
+    setError(null);
+    setEditing(true);
+  }
+
+  async function save(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setError(null);
+    const res = await updateCustomer(customer.id, draft);
+    setBusy(false);
+    if (res.ok) setEditing(false);
+    else setError(res.error);
+  }
+
+  return (
+    <Card className="p-5">
+      <div className="flex items-center gap-4">
+        <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black text-base font-semibold text-white">{initials(customer.name)}</span>
+        <div className="min-w-0 flex-1">
+          <p className="display text-2xl tabular-nums">{money(total)}</p>
+          <p className="text-xs text-black/50">{f(c.spent, { n: count })}</p>
+        </div>
+        {!editing && (
+          <button type="button" onClick={startEdit} aria-label={t.common.edit} className="inline-flex h-9 w-9 items-center justify-center rounded-full hover:bg-black/5">
+            <Pencil size={15} />
+          </button>
+        )}
+      </div>
+
+      {editing ? (
+        <form onSubmit={save} className="mt-5 space-y-3 border-t border-line pt-4">
+          {(["name", "email", "phone", "city"] as const).map((k) => (
+            <label key={k} className="block">
+              <span className="mb-1 block text-xs font-medium text-black/60">{c.fields[k]}</span>
+              <input value={draft[k]} onChange={(e) => setDraft((d) => ({ ...d, [k]: e.target.value }))} type={k === "email" ? "email" : "text"} required={k === "name" || k === "email"} className={input} />
+            </label>
+          ))}
+          <label className="block">
+            <span className="mb-1 block text-xs font-medium text-black/60">{c.fields.note}</span>
+            <textarea value={draft.note} onChange={(e) => setDraft((d) => ({ ...d, note: e.target.value }))} rows={2} className="w-full rounded-xl border border-line bg-white px-3 py-2 text-sm outline-none focus:border-black" />
+          </label>
+          <p className="text-[11px] leading-relaxed text-black/50">{c.editHint}</p>
+          {error && <p className="text-sm font-medium text-alert">{error}</p>}
+          <div className="flex gap-2">
+            <Button type="submit" size="sm" disabled={busy}>
+              {busy ? t.common.saving : t.common.save}
+            </Button>
+            <Button type="button" size="sm" variant="ghost" disabled={busy} onClick={() => setEditing(false)}>
+              {t.common.cancel}
+            </Button>
+          </div>
+        </form>
+      ) : (
+        <>
+          <ul className="mt-5 space-y-2.5 border-t border-line pt-4 text-sm">
+            <li className="flex items-center gap-2">
+              <Mail size={14} className="text-black/40" /> {customer.email}
+            </li>
+            <li className="flex items-center gap-2">
+              <Phone size={14} className="text-black/40" /> {customer.phone}
+            </li>
+            <li className="flex items-center gap-2">
+              <MapPin size={14} className="text-black/40" /> {customer.city}
+            </li>
+          </ul>
+          {customer.note && <p className="mt-4 rounded-xl bg-mist p-3 text-xs leading-relaxed">{customer.note}</p>}
+        </>
+      )}
+    </Card>
+  );
+}
+
 export function CustomerDetail({ id }: { id: string }) {
   const { t, f, money, shortDate, longDate } = useT();
   const c = t.dash.customers;
@@ -148,27 +235,7 @@ export function CustomerDetail({ id }: { id: string }) {
 
       <div className="grid gap-4 xl:grid-cols-3">
         <div className="space-y-4">
-          <Card className="p-5">
-            <div className="flex items-center gap-4">
-              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-black text-base font-semibold text-white">{initials(customer.name)}</span>
-              <div>
-                <p className="display text-2xl tabular-nums">{money(total)}</p>
-                <p className="text-xs text-black/50">{f(c.spent, { n: own.length })}</p>
-              </div>
-            </div>
-            <ul className="mt-5 space-y-2.5 border-t border-line pt-4 text-sm">
-              <li className="flex items-center gap-2">
-                <Mail size={14} className="text-black/40" /> {customer.email}
-              </li>
-              <li className="flex items-center gap-2">
-                <Phone size={14} className="text-black/40" /> {customer.phone}
-              </li>
-              <li className="flex items-center gap-2">
-                <MapPin size={14} className="text-black/40" /> {customer.city}
-              </li>
-            </ul>
-            {customer.note && <p className="mt-4 rounded-xl bg-mist p-3 text-xs leading-relaxed">{customer.note}</p>}
-          </Card>
+          <CustomerInfoCard customer={customer} total={total} count={own.length} />
           {favProduct && (
             <Card className="p-5">
               <p className="text-[11px] uppercase tracking-wider text-black/45">{c.favorite}</p>

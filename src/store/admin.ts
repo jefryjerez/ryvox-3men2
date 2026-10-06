@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import type { Product } from "@/lib/products";
-import type { Order, OrderStatus, Customer, DiscountCode } from "@/lib/orders";
+import type { Address, Order, OrderStatus, Customer, DiscountCode } from "@/lib/orders";
 
 type Result = { ok: true } | { ok: false; error: string };
 
@@ -23,6 +23,8 @@ interface AdminState {
   setOrderStatus: (id: string, status: OrderStatus) => Promise<Result>;
   markShipped: (id: string, input: { carrier: string; tracking: string } | { auto: true }) => Promise<Result>;
   refreshLabel: (id: string) => Promise<Result>;
+  updateCustomer: (id: string, patch: { name: string; email: string; phone: string; city: string; note: string }) => Promise<Result>;
+  editOrderContact: (id: string, patch: { email: string; shippingAddress: Address }) => Promise<Result>;
   createDiscountCode: (input: { code: string; percentOff: number; note?: string }) => Promise<Result>;
   toggleDiscountCodeActive: (id: string) => Promise<Result>;
   sendAbandonedOffer: (orderId: string, percentOff: number) => Promise<Result>;
@@ -139,6 +141,26 @@ export const useAdmin = create<AdminState>()((set, get) => ({
     try {
       const { order } = await api<{ order: Order }>(`/api/admin/orders/${id}/label`, { method: "POST" });
       set((s) => ({ orders: s.orders.map((o) => (o.id === id ? order : o)) }));
+      return { ok: true };
+    } catch (err) {
+      return fail(err);
+    }
+  },
+
+  updateCustomer: async (id, patch) => {
+    try {
+      const { customer } = await api<{ customer: Customer }>(`/api/admin/customers/${id}`, { method: "PATCH", body: JSON.stringify(patch) });
+      set((s) => ({ customers: s.customers.map((c) => (c.id === id ? customer : c)) }));
+      return { ok: true };
+    } catch (err) {
+      return fail(err);
+    }
+  },
+
+  editOrderContact: async (id, patch) => {
+    try {
+      const { order } = await api<{ order: Order }>(`/api/admin/orders/${id}`, { method: "PATCH", body: JSON.stringify(patch) });
+      set((s) => ({ orders: s.orders.map((o) => (o.id === id ? order : o)), abandoned: s.abandoned.map((o) => (o.id === id ? order : o)) }));
       return { ok: true };
     } catch (err) {
       return fail(err);

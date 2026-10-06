@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { BarChart3, Boxes, ClipboardList, ExternalLink, LayoutGrid, LayoutTemplate, LogOut, Package, Percent, ShoppingCart, Smartphone, Truck, Users, X } from "lucide-react";
+import { BarChart3, BellPlus, Boxes, ClipboardList, ExternalLink, LayoutGrid, LayoutTemplate, LogOut, Package, Percent, ShoppingCart, Smartphone, Truck, Users, X } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { LanguageSwitch } from "@/components/brand/LanguageSwitch";
 import { useAdmin, isLowStock } from "@/store/admin";
@@ -37,6 +37,7 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
     { href: "/dashboard/ordenes", label: t.dash.nav.orders, icon: ClipboardList },
     { href: "/dashboard/abandonados", label: t.dash.nav.abandoned, icon: ShoppingCart },
     { href: "/dashboard/descuentos", label: t.dash.nav.discounts, icon: Percent },
+    { href: "/dashboard/interesados", label: t.dash.nav.interested, icon: BellPlus },
     { href: "/dashboard/inventario", label: t.dash.nav.inventory, icon: Boxes },
     { href: "/dashboard/productos", label: t.dash.nav.products, icon: Package },
     { href: "/dashboard/landing", label: t.dash.nav.landing, icon: LayoutTemplate },

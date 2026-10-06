@@ -1,10 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { ArrowRight, Clock } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Reveal } from "@/components/motion/Reveal";
 import { ProductViewer } from "@/components/three/ProductViewer";
 import { ColorSwatches } from "@/components/store/ColorSwatches";
+import { NotifyMe } from "@/components/store/NotifyMe";
 import { Button, ButtonLink } from "@/components/ui/Button";
 import type { Product } from "@/lib/products";
 import { productColors, productImage, type ColorId } from "@/lib/colors";
@@ -68,9 +69,7 @@ export function Featured({ product: featured, eyebrow }: { product: Product; eye
             )}
             <div className="mt-8 flex flex-wrap items-center gap-3">
               {featured.comingSoon ? (
-                <Button size="lg" disabled>
-                  <Clock size={18} /> {t.product.comingSoon}
-                </Button>
+                <NotifyMe productId={featured.id} />
               ) : (
                 <Button size="lg" onClick={() => add(featured, 1, colors.length > 1 ? color : null)}>
                   {t.featured.add} · {money(featured.price)}

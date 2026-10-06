@@ -18,6 +18,8 @@ export const ORDER_STATUS: Record<OrderStatus, string> = {
 export interface Address {
   name: string;
   line1: string;
+  line2?: string;
+  phone?: string;
   city: string;
   region: string;
   zip: string;
@@ -31,6 +33,15 @@ export interface DiscountCode {
   active: boolean;
   usesCount: number;
   note?: string | null;
+  createdAt: string;
+}
+
+/** Persona que pidió que le avisen cuando un producto "Próximamente" salga a la venta. */
+export interface NotifyRequest {
+  id: string;
+  email: string;
+  productId: string;
+  lang: "es" | "en";
   createdAt: string;
 }
 

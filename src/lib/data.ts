@@ -6,7 +6,7 @@ import { ABANDONED_TTL_DAYS } from "@/lib/shop-config";
 import type { AddressJson, CustomerRow, OrderItemRow, OrderRow, ProductRow } from "@/db/schema";
 import { PRODUCTS, type Category, type Model3D, type Product } from "@/lib/products";
 import { productColors, type ColorId } from "@/lib/colors";
-import type { Customer, DiscountCode, Order, OrderStatus } from "@/lib/orders";
+import type { Customer, DiscountCode, NotifyRequest, Order, OrderStatus } from "@/lib/orders";
 import type { ShippingRate } from "@/lib/shipping";
 import { notifyNewOrder } from "@/lib/push";
 import { sendAdminNewOrder } from "@/lib/email";
@@ -183,6 +183,12 @@ export async function listCustomers(): Promise<Customer[]> {
   const db = await getDb();
   const rows = await db.select().from(schema.customers).orderBy(desc(schema.customers.createdAt));
   return rows.map(rowToCustomer);
+}
+
+export async function updateCustomer(id: string, patch: { name: string; email: string; phone: string; city: string; note: string | null }): Promise<Customer | null> {
+  const db = await getDb();
+  const [row] = await db.update(schema.customers).set(patch).where(eq(schema.customers.id, id)).returning();
+  return row ? rowToCustomer(row) : null;
 }
 
 export async function findOrCreateCustomer(input: { name: string; email: string; phone: string; city: string }): Promise<CustomerRow> {
@@ -398,6 +404,23 @@ export async function cancelOrder(id: string): Promise<Order | null> {
     for (const it of items) await adjustStock(it.productId, it.qty, "cancelacion", id);
   }
   return updateOrder(id, { status: "cancelado" });
+}
+
+/* ---------- avisos de "Próximamente" ---------- */
+
+/** Guarda el correo de alguien que quiere que le avisen del lanzamiento; repetir el mismo correo no duplica. */
+export async function addNotifyRequest(input: { email: string; productId: string; lang: "es" | "en" }): Promise<void> {
+  const db = await getDb();
+  await db
+    .insert(schema.notifyRequests)
+    .values({ id: `n-${crypto.randomUUID()}`, email: input.email.trim().toLowerCase(), productId: input.productId, lang: input.lang })
+    .onConflictDoNothing();
+}
+
+export async function listNotifyRequests(): Promise<NotifyRequest[]> {
+  const db = await getDb();
+  const rows = await db.select().from(schema.notifyRequests).orderBy(desc(schema.notifyRequests.createdAt));
+  return rows.map((r) => ({ id: r.id, email: r.email, productId: r.productId, lang: r.lang === "en" ? "en" : "es", createdAt: r.createdAt.toISOString() }));
 }
 
 /* ---------- códigos de descuento ---------- */

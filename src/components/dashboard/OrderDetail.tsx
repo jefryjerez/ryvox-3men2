@@ -3,13 +3,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowLeft, Check, CreditCard, MapPin, Printer, RefreshCw, Truck } from "lucide-react";
+import { ArrowLeft, Check, CreditCard, Printer, RefreshCw, Truck } from "lucide-react";
 import { useAdmin } from "@/store/admin";
 import { orderSubtotal, orderTimeline, orderTotal, type OrderStatus } from "@/lib/orders";
 import { cn } from "@/lib/format";
 import { Card, PageHeader, Pill, StatusBadge } from "@/components/dashboard/ui";
 import { Button } from "@/components/ui/Button";
 import { ShipDialog } from "@/components/dashboard/ShipDialog";
+import { OrderAddressEditor } from "@/components/dashboard/OrderAddressEditor";
 import { useT } from "@/i18n/client";
 
 const STATUSES: OrderStatus[] = ["pendiente", "procesando", "enviado", "entregado", "cancelado"];
@@ -139,18 +140,7 @@ export function OrderDetail({ id }: { id: string }) {
               </div>
             </dl>
             <div className="mt-4 border-t border-line pt-4">
-              <p className="inline-flex items-center gap-1.5 text-xs font-medium text-black/60">
-                <MapPin size={13} /> {d.shipTo}
-              </p>
-              <address className="mt-2 text-sm not-italic leading-relaxed">
-                {order.shippingAddress.name}
-                <br />
-                {order.shippingAddress.line1}
-                <br />
-                {order.shippingAddress.city}, {order.shippingAddress.region} {order.shippingAddress.zip}
-                <br />
-                {order.shippingAddress.country}
-              </address>
+              <OrderAddressEditor order={order} />
             </div>
             <div className="mt-4 border-t border-line pt-4">
               <p className="inline-flex items-center gap-1.5 text-xs font-medium text-black/60">

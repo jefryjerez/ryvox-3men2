@@ -5,6 +5,7 @@ import { Clock, Minus, Plus, ShoppingBag } from "lucide-react";
 import type { Product } from "@/lib/products";
 import type { ColorId } from "@/lib/colors";
 import { Button } from "@/components/ui/Button";
+import { NotifyMe } from "@/components/store/NotifyMe";
 import { useCart } from "@/store/cart";
 import { useT } from "@/i18n/client";
 
@@ -18,10 +19,11 @@ export function AddToCart({ product, color = null }: { product: Product; color?:
   if (product.comingSoon) {
     return (
       <div className="mt-8">
-        <Button size="lg" className="w-full" disabled>
+        <p className="inline-flex items-center gap-2 text-sm font-semibold">
           <Clock size={18} /> {t.product.comingSoon}
-        </Button>
-        <p className="mt-3 text-xs font-medium text-black/50">{t.product.comingSoonHint}</p>
+        </p>
+        <p className="mb-4 mt-2 text-xs font-medium text-black/50">{t.product.comingSoonHint}</p>
+        <NotifyMe productId={product.id} />
       </div>
     );
   }
