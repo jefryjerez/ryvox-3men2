@@ -39,6 +39,7 @@ export const es = {
   nav: { products: "Productos", about: "Ryvox", wholesale: "Mayoreo", contact: "Contacto", cartAria: "Carrito, {n} artículos", openMenu: "Abrir menú", closeMenu: "Cerrar menú", language: "Idioma" },
   wholesale: {
     eyebrow: "Mayoreo",
+    open: "Solicitar precio de mayoreo",
     title: "Compra al por mayor",
     subtitle: "¿Quieres surtir tu barbería o tu tienda? Dinos qué necesitas y te enviamos un precio especial.",
     name: "Nombre",

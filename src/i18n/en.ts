@@ -40,6 +40,7 @@ export const en: Dictionary = {
   nav: { products: "Products", about: "Ryvox", wholesale: "Wholesale", contact: "Contact", cartAria: "Cart, {n} items", openMenu: "Open menu", closeMenu: "Close menu", language: "Language" },
   wholesale: {
     eyebrow: "Wholesale",
+    open: "Request wholesale pricing",
     title: "Buy wholesale",
     subtitle: "Want to stock your barbershop or store? Tell us what you need and we'll send you a special price.",
     name: "Name",

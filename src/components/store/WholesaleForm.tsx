@@ -27,6 +27,8 @@ export function WholesaleForm({ products }: { products: { id: string; name: stri
   const [form, setForm] = useState({ name: "", email: "", phone: "", message: "", website: "" });
   const [address, setAddress] = useState({ line1: "", line2: "", city: "", region: "", zip: "", country: t.checkout.countryDefault });
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
+  // El formulario es largo: la sección muestra solo el botón y lo despliega al tocarlo.
+  const [open, setOpen] = useState(false);
 
   const setLine = (key: number, patch: Partial<Line>) => setLines((prev) => prev.map((l) => (l.key === key ? { ...l, ...patch } : l)));
   const setAddr = (k: keyof typeof address, v: string) => setAddress((prev) => ({ ...prev, [k]: v }));
@@ -55,12 +57,18 @@ export function WholesaleForm({ products }: { products: { id: string; name: stri
     <section id="mayoreo" className="scroll-mt-24 bg-mist">
       <div className="container-x mx-auto max-w-[1400px] py-24 md:py-32">
         <div className="grid gap-12 md:grid-cols-12">
-          <Reveal className="md:col-span-5">
+          <Reveal className={open ? "md:col-span-5" : "md:col-span-12"}>
             <p className="eyebrow text-black/50">{w.eyebrow}</p>
             <h2 className="display mt-5 text-[clamp(2.4rem,6vw,4.6rem)] uppercase">{w.title}</h2>
             <p className="mt-6 max-w-md text-base leading-relaxed text-black/65">{w.subtitle}</p>
+            {!open && (
+              <Button type="button" size="lg" className="mt-8" onClick={() => setOpen(true)}>
+                {w.open}
+              </Button>
+            )}
           </Reveal>
 
+          {open && (
           <Reveal delay={0.1} className="md:col-span-7">
             {state === "done" ? (
               <div className="rounded-3xl bg-white p-8 md:p-10">
@@ -191,12 +199,18 @@ export function WholesaleForm({ products }: { products: { id: string; name: stri
                 <input type="text" name="website" tabIndex={-1} autoComplete="off" value={form.website} onChange={(e) => setForm({ ...form, website: e.target.value })} className="hidden" aria-hidden />
 
                 {state === "error" && <p className="text-sm font-medium text-alert">{w.error}</p>}
-                <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={state === "sending"}>
-                  {state === "sending" ? w.sending : w.submit}
-                </Button>
+                <div className="flex flex-wrap gap-3">
+                  <Button type="submit" size="lg" className="w-full sm:w-auto" disabled={state === "sending"}>
+                    {state === "sending" ? w.sending : w.submit}
+                  </Button>
+                  <Button type="button" size="lg" variant="ghost" disabled={state === "sending"} onClick={() => setOpen(false)}>
+                    {t.common.cancel}
+                  </Button>
+                </div>
               </form>
             )}
           </Reveal>
+          )}
         </div>
       </div>
     </section>
