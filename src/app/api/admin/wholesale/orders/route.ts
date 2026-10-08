@@ -1,6 +1,8 @@
 import type { AddressJson } from "@/db/schema";
 import { requireAdmin } from "@/lib/auth-server";
 import { createOrder, deleteOrder, findOrCreateCustomer, getProductRowsByIds, markOrderPaid, updateOrder } from "@/lib/data";
+import { isColorId, productColors, type ColorId } from "@/lib/colors";
+import { getDictionary } from "@/i18n/config";
 import { getStripe, stripeEnabled } from "@/lib/stripe";
 import { calculateTax } from "@/lib/tax";
 import { listWholesaleCharges, payUrlFor, updateWholesaleRequest } from "@/lib/wholesale";
@@ -16,7 +18,7 @@ interface Body {
   message?: string;
   lang?: string;
   address?: { line1?: string; line2?: string; city?: string; region?: string; zip?: string; country?: string };
-  lines?: { productId?: string; qty?: number; unitPrice?: number }[];
+  lines?: { productId?: string; color?: string; qty?: number; unitPrice?: number }[];
 }
 
 const str = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
@@ -61,11 +63,13 @@ export async function POST(req: Request) {
 
   const lines = Array.isArray(body.lines) ? body.lines : [];
   if (lines.length === 0 || lines.length > 20) return Response.json({ error: "Agrega entre 1 y 20 productos" }, { status: 400 });
-  const ids = lines.map((l) => l.productId);
-  if (new Set(ids).size !== ids.length) return Response.json({ error: "Un producto está repetido: junta las cantidades en una sola línea" }, { status: 400 });
+  const keys = lines.map((l) => `${l.productId}|${isColorId(l.color) ? l.color : ""}`);
+  if (new Set(keys).size !== keys.length) return Response.json({ error: "Un producto está repetido con el mismo color: junta las cantidades en una sola línea" }, { status: 400 });
 
-  const rows = await getProductRowsByIds(ids.filter((x): x is string => typeof x === "string"));
-  const items: { productId: string; name: string; sku: string; qty: number; price: number }[] = [];
+  const rows = await getProductRowsByIds([...new Set(lines.map((l) => l.productId).filter((x): x is string => typeof x === "string"))]);
+  const colorNames = getDictionary(lang).colors as Record<string, string>;
+  const items: { productId: string; name: string; sku: string; qty: number; price: number; color: ColorId | null }[] = [];
+  const qtyByProduct = new Map<string, number>();
   for (const l of lines) {
     const p = rows.find((r) => r.id === l.productId);
     const qty = Math.floor(Number(l.qty));
@@ -73,8 +77,19 @@ export async function POST(req: Request) {
     if (!p || !p.active || p.comingSoon) return Response.json({ error: "Un producto ya no está disponible" }, { status: 409 });
     if (!Number.isFinite(qty) || qty < 1 || qty > 100000) return Response.json({ error: `Cantidad inválida en ${p.name}` }, { status: 400 });
     if (!Number.isFinite(price) || price < 1 || price > MAX_UNIT_CENTS) return Response.json({ error: `Pon el precio por unidad de ${p.name}` }, { status: 400 });
-    if (p.stock < qty) return Response.json({ error: `Solo quedan ${p.stock} unidades de ${p.name}` }, { status: 409 });
-    items.push({ productId: p.id, name: lang === "en" ? p.nameEn || p.name : p.name, sku: p.sku, qty, price });
+    // Con varios colores hay que elegir uno de los que se fabrican; con uno solo no se etiqueta la variante.
+    const available = productColors({ colors: p.colors });
+    let color: ColorId | null = null;
+    if (available.length > 1) {
+      if (!isColorId(l.color) || !available.includes(l.color)) return Response.json({ error: `Elige el color de ${p.name}` }, { status: 400 });
+      color = l.color;
+    }
+    // El inventario es del producto (no por color): se suma lo pedido de todos sus colores.
+    const total = (qtyByProduct.get(p.id) ?? 0) + qty;
+    qtyByProduct.set(p.id, total);
+    if (p.stock < total) return Response.json({ error: `Solo quedan ${p.stock} unidades de ${p.name}` }, { status: 409 });
+    const baseName = lang === "en" ? p.nameEn || p.name : p.name;
+    items.push({ productId: p.id, name: color ? `${baseName} · ${colorNames[color] ?? color}` : baseName, sku: p.sku, qty, price, color });
   }
   const subtotal = items.reduce((s, i) => s + i.qty * i.price, 0);
 

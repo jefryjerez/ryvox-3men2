@@ -45,7 +45,8 @@ export interface WholesaleRequest {
   message: string;
   lang: "es" | "en";
   status: "nueva" | "cobro" | "descartada";
-  items: { productId: string; name: string; qty: number }[];
+  items: { productId: string; name: string; qty: number; color?: string | null }[];
+  address: Address | null;
   orderId: string | null;
   createdAt: string;
 }

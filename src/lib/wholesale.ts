@@ -2,7 +2,7 @@ import "server-only";
 import { desc, eq } from "drizzle-orm";
 import { getDb, schema } from "@/db";
 import { listOrders } from "@/lib/data";
-import type { Order, WholesaleRequest } from "@/lib/orders";
+import type { Address, Order, WholesaleRequest } from "@/lib/orders";
 import { SITE_URL } from "@/lib/seo";
 
 const STATUSES: WholesaleRequest["status"][] = ["nueva", "cobro", "descartada"];
@@ -18,6 +18,7 @@ function rowToRequest(r: schema.WholesaleRequestRow): WholesaleRequest {
     lang: r.lang === "en" ? "en" : "es",
     status: isRequestStatus(r.status) ? r.status : "nueva",
     items: r.items,
+    address: r.address ?? null,
     orderId: r.orderId,
     createdAt: r.createdAt.toISOString(),
   };
@@ -29,7 +30,8 @@ export async function createWholesaleRequest(input: {
   phone: string;
   message: string;
   lang: "es" | "en";
-  items: { productId: string; name: string; qty: number }[];
+  items: { productId: string; name: string; qty: number; color?: string | null }[];
+  address: Address;
 }): Promise<WholesaleRequest> {
   const db = await getDb();
   const id = `w-${crypto.randomUUID()}`;

@@ -105,7 +105,15 @@ export function Wholesale() {
     setForm({ initial });
   };
   const prepare = (r: WholesaleRequest) =>
-    openForm({ requestId: r.id, name: r.name, email: r.email, phone: r.phone, customerMessage: r.message, lines: r.items.map((i) => ({ productId: i.productId, qty: i.qty })) });
+    openForm({
+      requestId: r.id,
+      name: r.name,
+      email: r.email,
+      phone: r.phone,
+      customerMessage: r.message,
+      address: r.address,
+      lines: r.items.map((i) => ({ productId: i.productId, qty: i.qty, color: i.color })),
+    });
 
   const closeForm = useCallback(() => {
     setForm(null);
@@ -149,11 +157,18 @@ export function Wholesale() {
               </div>
               <ul className="mt-2 space-y-0.5 text-sm">
                 {r.items.map((i) => (
-                  <li key={i.productId}>
-                    {i.name} <span className="text-black/50">× {i.qty}</span>
+                  <li key={`${i.productId}-${i.color ?? ""}`}>
+                    {i.name}
+                    {i.color && <span> · {t.colors[i.color as keyof typeof t.colors] ?? i.color}</span>} <span className="text-black/50">× {i.qty}</span>
                   </li>
                 ))}
               </ul>
+              {r.address && (
+                <p className="mt-2 text-xs text-black/55">
+                  {r.address.line1}
+                  {r.address.line2 && `, ${r.address.line2}`} · {r.address.city}, {r.address.region} {r.address.zip}
+                </p>
+              )}
               {r.message && <p className="mt-2 whitespace-pre-wrap rounded-xl bg-mist p-3 text-xs leading-relaxed">{r.message}</p>}
               <div className="mt-3 flex flex-wrap gap-2">
                 {r.status === "nueva" && (

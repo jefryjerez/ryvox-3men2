@@ -10,6 +10,7 @@ import { Manifesto } from "@/components/store/Manifesto";
 import { WholesaleForm } from "@/components/store/WholesaleForm";
 import { listProducts } from "@/lib/data";
 import { localizeProduct } from "@/lib/products";
+import { productColors } from "@/lib/colors";
 import { getLandingSettings, mergeLandingText } from "@/lib/landing";
 import { dict } from "@/i18n/server";
 
@@ -65,7 +66,7 @@ export default async function HomePage({ params }: PageProps<"/[lang]">) {
       <JsonLd data={structured} />
       {settings.order.map((id) => sections[id])}
       {/* Mayoreo: el solicitante elige entre lo que sí se vende (no "próximamente"). */}
-      <WholesaleForm products={buyable.map((p) => ({ id: p.id, name: p.name }))} />
+      <WholesaleForm products={buyable.map((p) => ({ id: p.id, name: p.name, colors: productColors(p) }))} />
     </>
   );
 }

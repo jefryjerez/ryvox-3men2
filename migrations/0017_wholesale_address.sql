@@ -1,0 +1,1 @@
+ALTER TABLE `wholesale_requests` ADD `address` text;

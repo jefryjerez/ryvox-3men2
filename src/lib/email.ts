@@ -120,7 +120,11 @@ export async function sendAdminWholesaleRequest(req: WholesaleRequest) {
   if (!to) return;
   const { site } = cfg();
   const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const rows = req.items.map((i) => `<tr><td style="padding:8px 0;border-bottom:1px solid #e8e8e8">${esc(i.name)}</td><td style="padding:8px 0;border-bottom:1px solid #e8e8e8;text-align:right">× ${i.qty}</td></tr>`).join("");
+  const colors = getDictionary("es").colors as Record<string, string>;
+  const rows = req.items
+    .map((i) => `<tr><td style="padding:8px 0;border-bottom:1px solid #e8e8e8">${esc(i.name)}${i.color ? ` · ${esc(colors[i.color] ?? i.color)}` : ""}</td><td style="padding:8px 0;border-bottom:1px solid #e8e8e8;text-align:right">× ${i.qty}</td></tr>`)
+    .join("");
+  const a = req.address;
   await send(
     to,
     `Solicitud al por mayor · ${req.name}`,
@@ -128,6 +132,7 @@ export async function sendAdminWholesaleRequest(req: WholesaleRequest) {
       "Solicitud al por mayor",
       `<p style="font-size:14px;color:#404040">${esc(req.name)} · ${esc(req.email)}${req.phone ? ` · ${esc(req.phone)}` : ""}</p>
        <table style="width:100%;border-collapse:collapse;font-size:14px;margin-top:10px">${rows}</table>
+       ${a ? `<p style="font-size:13px;color:#404040;margin-top:16px"><strong>Envío a</strong><br>${esc(a.line1)}${a.line2 ? `<br>${esc(a.line2)}` : ""}<br>${esc(a.city)}, ${esc(a.region)} ${esc(a.zip)}</p>` : ""}
        ${req.message ? `<p style="font-size:13px;color:#404040;margin-top:16px;white-space:pre-wrap">${esc(req.message)}</p>` : ""}
        <p style="margin:22px 0"><a href="${site}/dashboard/mayoreo" style="background:#000;color:#fff;text-decoration:none;padding:12px 22px;border-radius:999px;font-size:14px;display:inline-block">Ponerle precio</a></p>`,
     ),

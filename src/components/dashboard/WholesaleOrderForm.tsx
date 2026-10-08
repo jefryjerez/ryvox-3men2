@@ -6,6 +6,7 @@ import { Check, Copy, Mail, Plus, RotateCcw, X } from "lucide-react";
 import { AddressAutocomplete } from "@/components/store/AddressAutocomplete";
 import { Card } from "@/components/dashboard/ui";
 import { Button } from "@/components/ui/Button";
+import { productColors } from "@/lib/colors";
 import { useAdmin } from "@/store/admin";
 import { useT } from "@/i18n/client";
 
@@ -17,12 +18,14 @@ export interface WholesaleInitial {
   email: string;
   phone: string;
   customerMessage: string;
-  lines: { productId: string; qty: number }[];
+  address?: { line1: string; line2?: string; city: string; region: string; zip: string; country: string } | null;
+  lines: { productId: string; qty: number; color?: string | null }[];
 }
 
 interface Line {
   key: number;
   productId: string;
+  color: string;
   qty: string;
   price: string;
 }
@@ -48,10 +51,19 @@ export function WholesaleOrderForm({ initial, onClose, onChanged }: { initial?: 
   const [name, setName] = useState(initial?.name ?? "");
   const [email, setEmail] = useState(initial?.email ?? "");
   const [phone, setPhone] = useState(initial?.phone ?? "");
-  const [address, setAddress] = useState({ line1: "", line2: "", city: "", region: "", zip: "", country: "Estados Unidos" });
+  const [address, setAddress] = useState({
+    line1: initial?.address?.line1 ?? "",
+    line2: initial?.address?.line2 ?? "",
+    city: initial?.address?.city ?? "",
+    region: initial?.address?.region ?? "",
+    zip: initial?.address?.zip ?? "",
+    country: initial?.address?.country ?? "Estados Unidos",
+  });
   const [message, setMessage] = useState("");
   const [lines, setLines] = useState<Line[]>(() =>
-    initial?.lines.length ? initial.lines.map((l, i) => ({ key: i + 1, productId: l.productId, qty: String(l.qty), price: "" })) : [{ key: 1, productId: "", qty: "1", price: "" }],
+    initial?.lines.length
+      ? initial.lines.map((l, i) => ({ key: i + 1, productId: l.productId, color: l.color ?? "", qty: String(l.qty), price: "" }))
+      : [{ key: 1, productId: "", color: "", qty: "1", price: "" }],
   );
   const [lineSeq, setLineSeq] = useState(() => (initial?.lines.length ?? 0) + 2);
   const [busy, setBusy] = useState(false);
@@ -69,7 +81,7 @@ export function WholesaleOrderForm({ initial, onClose, onChanged }: { initial?: 
   const ready =
     !!(name && email && address.line1 && address.city && address.region && address.zip) &&
     lines.length > 0 &&
-    lines.every((l) => l.productId && Number(l.qty) >= 1 && toCents(l.price) >= 1);
+    lines.every((l) => l.productId && (productColors(products.find((x) => x.id === l.productId) ?? {}).length < 2 || l.color) && Number(l.qty) >= 1 && toCents(l.price) >= 1);
 
   async function generate(e: FormEvent) {
     e.preventDefault();
@@ -87,7 +99,7 @@ export function WholesaleOrderForm({ initial, onClose, onChanged }: { initial?: 
           message,
           lang: locale,
           address,
-          lines: lines.map((l) => ({ productId: l.productId, qty: Math.floor(Number(l.qty)), unitPrice: toCents(l.price) })),
+          lines: lines.map((l) => ({ productId: l.productId, color: l.color || undefined, qty: Math.floor(Number(l.qty)), unitPrice: toCents(l.price) })),
         }),
       });
       const data = (await res.json().catch(() => ({}))) as Partial<Charge> & { error?: string };
@@ -264,26 +276,40 @@ export function WholesaleOrderForm({ initial, onClose, onChanged }: { initial?: 
         <ul className="mt-4 space-y-3">
           {lines.map((l) => {
             const p = products.find((x) => x.id === l.productId);
+            const colors = p ? productColors(p) : [];
             const lineTotal = (Math.floor(Number(l.qty)) || 0) * toCents(l.price);
             return (
               <li key={l.key} className="rounded-2xl border border-line p-3">
-                <div className="grid gap-3 sm:grid-cols-[1fr_6rem_8rem_auto] sm:items-end">
-                  <label className="block">
+                <div className="flex flex-wrap items-end gap-3">
+                  <label className="block min-w-[12rem] flex-1">
                     <span className="mb-1.5 block text-xs font-medium text-black/60">{fm.product}</span>
-                    <select value={l.productId} onChange={(e) => setLine(l.key, { productId: e.target.value })} required className={input}>
+                    <select value={l.productId} onChange={(e) => setLine(l.key, { productId: e.target.value, color: "" })} required className={input}>
                       <option value="">{fm.pick}</option>
                       {products.map((prod) => (
-                        <option key={prod.id} value={prod.id} disabled={lines.some((x) => x.key !== l.key && x.productId === prod.id)}>
+                        <option key={prod.id} value={prod.id}>
                           {prod.name}
                         </option>
                       ))}
                     </select>
                   </label>
-                  <label className="block">
+                  {colors.length > 1 && (
+                    <label className="block w-36">
+                      <span className="mb-1.5 block text-xs font-medium text-black/60">{fm.color}</span>
+                      <select value={l.color} onChange={(e) => setLine(l.key, { color: e.target.value })} required className={input}>
+                        <option value="">{fm.pickColor}</option>
+                        {colors.map((c) => (
+                          <option key={c} value={c}>
+                            {t.colors[c]}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
+                  <label className="block w-24">
                     <span className="mb-1.5 block text-xs font-medium text-black/60">{fm.qty}</span>
-                    <input type="number" min={1} max={p?.stock} step={1} value={l.qty} onChange={(e) => setLine(l.key, { qty: e.target.value })} required className={input} />
+                    <input type="number" min={1} step={1} value={l.qty} onChange={(e) => setLine(l.key, { qty: e.target.value })} required className={input} />
                   </label>
-                  <label className="block">
+                  <label className="block w-32">
                     <span className="mb-1.5 block text-xs font-medium text-black/60">{fm.unitPrice}</span>
                     <input type="number" min={0.01} step="0.01" inputMode="decimal" value={l.price} onChange={(e) => setLine(l.key, { price: e.target.value })} required className={input} />
                   </label>
@@ -306,7 +332,7 @@ export function WholesaleOrderForm({ initial, onClose, onChanged }: { initial?: 
           })}
         </ul>
         <Button type="button" variant="secondary" size="sm" className="mt-3" onClick={() => {
-            setLines((prev) => [...prev, { key: lineSeq, productId: "", qty: "1", price: "" }]);
+            setLines((prev) => [...prev, { key: lineSeq, productId: "", color: "", qty: "1", price: "" }]);
             setLineSeq((n) => n + 1);
           }}>
           <Plus size={14} /> {fm.addProduct}

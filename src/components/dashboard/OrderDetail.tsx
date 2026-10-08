@@ -185,7 +185,7 @@ export function OrderDetail({ id }: { id: string }) {
             </div>
             <ul className="mt-3 divide-y divide-line">
               {order.items.map((it) => (
-                <li key={it.productId} className="flex items-center gap-4 px-5 py-3.5">
+                <li key={`${it.productId}-${it.color ?? ""}-${it.name}`} className="flex items-center gap-4 px-5 py-3.5">
                   <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-mist">
                     <ItemImage productId={it.productId} />
                   </span>

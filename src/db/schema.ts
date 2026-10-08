@@ -204,7 +204,9 @@ export const wholesaleRequests = sqliteTable("wholesale_requests", {
   lang: text("lang").notNull().default("es"),
   // nueva | cobro (ya se generó el cobro) | descartada
   status: text("status").notNull().default("nueva"),
-  items: text("items", { mode: "json" }).$type<{ productId: string; name: string; qty: number }[]>().notNull().default([]),
+  items: text("items", { mode: "json" }).$type<{ productId: string; name: string; qty: number; color?: string | null }[]>().notNull().default([]),
+  // Dirección de envío que dejó quien pidió (para no tener que volver a preguntársela al preparar el cobro).
+  address: text("address", { mode: "json" }).$type<AddressJson | null>(),
   orderId: text("order_id"),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(now),
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().$defaultFn(now),
