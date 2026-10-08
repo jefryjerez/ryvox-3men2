@@ -1,4 +1,5 @@
 import { requireAdmin } from "@/lib/auth-server";
+import { hasAccess } from "@/lib/permissions";
 import { adjustStock, updateProduct } from "@/lib/data";
 import type { Product } from "@/lib/products";
 import { revalidateStore } from "@/lib/store-revalidate";
@@ -6,13 +7,15 @@ import { revalidateStore } from "@/lib/store-revalidate";
 type Body = Partial<Product> & { stockDelta?: number };
 
 export async function PATCH(req: Request, ctx: RouteContext<"/api/admin/products/[id]">) {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin(["products", "inventory"]);
   if ("response" in auth) return auth.response;
   const { id } = await ctx.params;
   const body = (await req.json().catch(() => null)) as Body | null;
   if (!body) return Response.json({ error: "Cuerpo inválido" }, { status: 400 });
 
   const { stockDelta, ...patch } = body;
+  // Solo ajustar inventario lo puede quien tenga "Inventario"; cambiar cualquier otro dato del producto exige "Productos".
+  if (Object.keys(patch).length > 0 && !hasAccess(auth.me, "products")) return Response.json({ error: "No tienes permiso para esto" }, { status: 403 });
   let product = null;
   if (typeof stockDelta === "number" && stockDelta !== 0) {
     product = await adjustStock(id, stockDelta, stockDelta > 0 ? "reposicion" : "ajuste");

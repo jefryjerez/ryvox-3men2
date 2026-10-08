@@ -8,7 +8,7 @@ interface Body {
 
 /** Registra (o actualiza) la suscripción push de este navegador para el administrador que la pide. */
 export async function POST(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin("any");
   if ("response" in auth) return auth.response;
   const body = (await req.json().catch(() => null)) as Body | null;
   if (!body?.endpoint || !body.keys?.p256dh || !body.keys.auth) {

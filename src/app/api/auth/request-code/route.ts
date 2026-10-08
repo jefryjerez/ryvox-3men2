@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
   const db = await getDb();
   const user = await db.query.adminUsers.findFirst({ where: (u, { eq }) => eq(u.email, email) });
-  if (user) {
+  if (user && user.active) {
     const code = await createLoginCode(email);
     await sendLoginCode(email, code, lang);
   }

@@ -5,7 +5,7 @@ import { isPlaceholderEmail } from "@/lib/orders";
 
 /** Genera un código de descuento y le manda al cliente una oferta por correo (p. ej. para un carrito abandonado). */
 export async function POST(req: Request, ctx: RouteContext<"/api/admin/orders/[id]/discount-email">) {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin("abandoned");
   if ("response" in auth) return auth.response;
   const { id } = await ctx.params;
 

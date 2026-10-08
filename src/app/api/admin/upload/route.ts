@@ -6,7 +6,7 @@ const TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png",
 
 /** Sube una imagen de producto a R2 y devuelve su URL pública (/media/...). */
 export async function POST(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin(["products", "landing"]);
   if ("response" in auth) return auth.response;
 
   const { env } = await getCloudflareContext({ async: true });

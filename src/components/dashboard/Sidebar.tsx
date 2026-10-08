@@ -4,10 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { BarChart3, BellPlus, Boxes, ClipboardList, ExternalLink, LayoutGrid, LayoutTemplate, LogOut, Package, Percent, ShoppingCart, Smartphone, Truck, Users, X } from "lucide-react";
+import { BarChart3, BellPlus, Boxes, ShieldCheck, ClipboardList, ExternalLink, LayoutGrid, LayoutTemplate, LogOut, Package, Percent, ShoppingCart, Smartphone, Truck, Users, X } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { LanguageSwitch } from "@/components/brand/LanguageSwitch";
 import { useAdmin, isLowStock } from "@/store/admin";
+import { hasAccess, pathNeed } from "@/lib/permissions";
 import { cn } from "@/lib/format";
 import { useT } from "@/i18n/client";
 
@@ -28,6 +29,7 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
   const orders = useAdmin((s) => s.orders);
   const abandoned = useAdmin((s) => s.abandoned);
   const products = useAdmin((s) => s.products);
+  const me = useAdmin((s) => s.me);
   const pending = orders.filter((o) => o.status === "pendiente" || o.status === "procesando").length;
   const low = products.filter((p) => p.active && isLowStock(p)).length;
 
@@ -44,7 +46,8 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
     { href: "/dashboard/venta", label: t.dash.nav.pos, icon: Smartphone },
     { href: "/dashboard/clientes", label: t.dash.nav.customers, icon: Users },
     { href: "/dashboard/envios", label: t.dash.nav.shipments, icon: Truck },
-  ];
+    { href: "/dashboard/equipo", label: t.dash.nav.team, icon: ShieldCheck },
+  ].filter((n) => hasAccess(me, pathNeed(n.href) ?? "any")); // solo las secciones que el rol de esta persona permite
 
   // la ruta puede llevar prefijo de idioma
   const path = pathname.replace(/^\/(es|en)(?=\/|$)/, "") || "/";

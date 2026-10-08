@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import type { Product } from "@/lib/products";
 import type { Address, Order, OrderStatus, Customer, DiscountCode } from "@/lib/orders";
+import { hasAccess, READ_ACCESS, type AdminMe } from "@/lib/permissions";
 
 type Result = { ok: true } | { ok: false; error: string };
 
@@ -13,6 +14,8 @@ interface AdminState {
   abandoned: Order[];
   customers: Customer[];
   discountCodes: DiscountCode[];
+  /** Quién es la persona con sesión y qué secciones puede usar (null mientras se carga). */
+  me: AdminMe | null;
   loaded: boolean;
   loading: boolean;
   error: string | null;
@@ -52,6 +55,7 @@ export const useAdmin = create<AdminState>()((set, get) => ({
   abandoned: [],
   customers: [],
   discountCodes: [],
+  me: null,
   loaded: false,
   loading: false,
   error: null,
@@ -60,14 +64,17 @@ export const useAdmin = create<AdminState>()((set, get) => ({
     if (get().loading) return;
     set({ loading: true, error: null });
     try {
+      // Primero se sabe quién es y qué le toca; solo se pide lo que su rol permite leer (el servidor lo vuelve a exigir).
+      const { me } = await api<{ me: AdminMe }>("/api/admin/me");
+      const none = <T,>(value: T) => Promise.resolve(value);
       const [p, o, a, c, d] = await Promise.all([
         api<{ products: Product[] }>("/api/admin/products"),
-        api<{ orders: Order[] }>("/api/admin/orders"),
-        api<{ orders: Order[] }>("/api/admin/orders?abandoned=1"),
-        api<{ customers: Customer[] }>("/api/admin/customers"),
-        api<{ codes: DiscountCode[] }>("/api/admin/discount-codes"),
+        hasAccess(me, READ_ACCESS.orders) ? api<{ orders: Order[] }>("/api/admin/orders") : none({ orders: [] as Order[] }),
+        hasAccess(me, READ_ACCESS.abandoned) ? api<{ orders: Order[] }>("/api/admin/orders?abandoned=1") : none({ orders: [] as Order[] }),
+        hasAccess(me, READ_ACCESS.customers) ? api<{ customers: Customer[] }>("/api/admin/customers") : none({ customers: [] as Customer[] }),
+        hasAccess(me, READ_ACCESS.discountCodes) ? api<{ codes: DiscountCode[] }>("/api/admin/discount-codes") : none({ codes: [] as DiscountCode[] }),
       ]);
-      set({ products: p.products, orders: o.orders, abandoned: a.orders, customers: c.customers, discountCodes: d.codes, loaded: true, loading: false });
+      set({ me, products: p.products, orders: o.orders, abandoned: a.orders, customers: c.customers, discountCodes: d.codes, loaded: true, loading: false });
     } catch (err) {
       set({ loading: false, error: (err as Error).message });
     }

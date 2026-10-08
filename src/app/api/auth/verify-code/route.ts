@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
   const db = await getDb();
   const user = await db.query.adminUsers.findFirst({ where: (u, { eq }) => eq(u.email, email) });
-  if (!user) return Response.json({ error: t.invalidCode }, { status: 401 });
+  if (!user || !user.active) return Response.json({ error: t.invalidCode }, { status: 401 });
 
   const token = await signSession({ sub: user.id, email: user.email, name: user.name });
   const store = await cookies();

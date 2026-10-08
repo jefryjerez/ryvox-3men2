@@ -139,11 +139,25 @@ export const stockMovements = sqliteTable("stock_movements", {
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(now),
 });
 
+/** Rol del equipo: acceso completo o solo las secciones elegidas (`permissions`). El rol "role-admin" es del sistema. */
+export const roles = sqliteTable("roles", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  fullAccess: integer("full_access", { mode: "boolean" }).notNull().default(false),
+  permissions: text("permissions", { mode: "json" }).$type<string[]>().notNull().default([]),
+  isSystem: integer("is_system", { mode: "boolean" }).notNull().default(false),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(now),
+});
+
 export const adminUsers = sqliteTable("admin_users", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
   name: text("name").notNull(),
   passwordHash: text("password_hash").notNull(),
+  // Sin rol (null) = sin acceso a nada: nunca se asume acceso completo por omisión.
+  roleId: text("role_id"),
+  // Una persona desactivada ya no puede entrar, aunque su sesión siga abierta.
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
   createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(now),
 });
 
@@ -209,3 +223,5 @@ export type CustomerRow = typeof customers.$inferSelect;
 export type OrderRow = typeof orders.$inferSelect;
 export type OrderItemRow = typeof orderItems.$inferSelect;
 export type DiscountCodeRow = typeof discountCodes.$inferSelect;
+export type RoleRow = typeof roles.$inferSelect;
+export type AdminUserRow = typeof adminUsers.$inferSelect;

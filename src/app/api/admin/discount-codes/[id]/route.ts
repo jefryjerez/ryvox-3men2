@@ -2,7 +2,7 @@ import { requireAdmin } from "@/lib/auth-server";
 import { setDiscountCodeActive } from "@/lib/data";
 
 export async function PATCH(req: Request, ctx: RouteContext<"/api/admin/discount-codes/[id]">) {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin("discounts");
   if ("response" in auth) return auth.response;
   const { id } = await ctx.params;
   const body = (await req.json().catch(() => null)) as { active?: boolean } | null;

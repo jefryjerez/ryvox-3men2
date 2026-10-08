@@ -3,7 +3,7 @@ import { fetchVisitHistory } from "@/lib/cf-analytics";
 
 /** Historial de visitas (Cloudflare Web Analytics) para el rango de fechas pedido. */
 export async function GET(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin("analytics");
   if ("response" in auth) return auth.response;
 
   const url = new URL(req.url);

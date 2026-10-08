@@ -3,7 +3,7 @@ import { fetchTopReferrers } from "@/lib/cf-analytics";
 
 /** De dónde viene el tráfico (host de referencia) para el rango de fechas pedido. */
 export async function GET(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin("analytics");
   if ("response" in auth) return auth.response;
 
   const url = new URL(req.url);

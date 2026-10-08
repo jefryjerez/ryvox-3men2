@@ -73,6 +73,7 @@ async function ensureAdmin(db: Db) {
     email,
     name: process.env.ADMIN_NAME ?? "Ryvox",
     passwordHash: await hashPassword(password),
+    roleId: "role-admin", // el rol de acceso completo lo crea la migración 0015
   });
   if (!process.env.ADMIN_PASSWORD) {
     console.warn(`[ryvox] Usuario admin creado con la contraseña por defecto (${email}). Define ADMIN_PASSWORD en .env.local.`);

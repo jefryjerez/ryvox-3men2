@@ -6,7 +6,7 @@ import { ORDER_STATUS, type OrderStatus } from "@/lib/orders";
 const str = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
 export async function GET(_req: Request, ctx: RouteContext<"/api/admin/orders/[id]">) {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin(["orders", "abandoned", "shipments", "customers"]);
   if ("response" in auth) return auth.response;
   const { id } = await ctx.params;
   const order = await getOrder(id);
@@ -14,7 +14,7 @@ export async function GET(_req: Request, ctx: RouteContext<"/api/admin/orders/[i
 }
 
 export async function PATCH(req: Request, ctx: RouteContext<"/api/admin/orders/[id]">) {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin(["orders", "abandoned"]);
   if ("response" in auth) return auth.response;
   const { id } = await ctx.params;
   const body = (await req.json().catch(() => null)) as { status?: OrderStatus; note?: string; email?: string; shippingAddress?: Partial<AddressJson> } | null;

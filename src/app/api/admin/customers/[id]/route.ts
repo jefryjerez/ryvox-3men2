@@ -4,7 +4,7 @@ import { updateCustomer } from "@/lib/data";
 const str = (v: unknown, max: number) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
 export async function PATCH(req: Request, ctx: RouteContext<"/api/admin/customers/[id]">) {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin("customers");
   if ("response" in auth) return auth.response;
   const { id } = await ctx.params;
   const body = (await req.json().catch(() => null)) as { name?: string; email?: string; phone?: string; city?: string; note?: string } | null;

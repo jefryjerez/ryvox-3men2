@@ -4,13 +4,13 @@ import { createDiscountCode, listDiscountCodes } from "@/lib/data";
 const CODE_RE = /^[A-Z0-9-]{3,24}$/;
 
 export async function GET() {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin("discounts");
   if ("response" in auth) return auth.response;
   return Response.json({ codes: await listDiscountCodes() });
 }
 
 export async function POST(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin("discounts");
   if ("response" in auth) return auth.response;
   const body = (await req.json().catch(() => null)) as { code?: string; percentOff?: number; note?: string } | null;
   const code = body?.code?.trim().toUpperCase() ?? "";

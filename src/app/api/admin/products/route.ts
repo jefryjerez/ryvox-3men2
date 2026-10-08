@@ -4,13 +4,13 @@ import type { Product } from "@/lib/products";
 import { revalidateStore, slugify } from "@/lib/store-revalidate";
 
 export async function GET() {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin("any");
   if ("response" in auth) return auth.response;
   return Response.json({ products: await listProducts(false) });
 }
 
 export async function POST(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin("products");
   if ("response" in auth) return auth.response;
   const body = (await req.json().catch(() => null)) as Product | null;
   if (!body?.name || !body.sku || typeof body.price !== "number") {

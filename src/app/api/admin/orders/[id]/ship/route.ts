@@ -9,7 +9,7 @@ import { buyLabel, registerTracking, shippoEnabled } from "@/lib/shipping";
  * - Sin ellos: compra la etiqueta en Shippo (tarifa que pagó el cliente) y guarda guía y PDF.
  */
 export async function POST(req: Request, ctx: RouteContext<"/api/admin/orders/[id]/ship">) {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin(["orders", "shipments"]);
   if ("response" in auth) return auth.response;
   const { id } = await ctx.params;
   const order = await getOrder(id);

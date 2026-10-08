@@ -10,6 +10,7 @@ export function Topbar() {
   const products = useAdmin((s) => s.products);
   const loading = useAdmin((s) => s.loading);
   const load = useAdmin((s) => s.load);
+  const me = useAdmin((s) => s.me);
   const low = products.filter((p) => p.active && isLowStock(p)).length;
 
   return (
@@ -39,10 +40,10 @@ export function Topbar() {
           </button>
           <PushBell />
           <div className="flex items-center gap-3 pl-1">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black text-xs font-semibold text-white">R</span>
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black text-xs font-semibold uppercase text-white">{me?.name.trim().charAt(0) || "·"}</span>
             <div className="hidden leading-tight sm:block">
-              <p className="text-sm font-medium">Ryvox</p>
-              <p className="text-[11px] text-black/50">{t.dash.topbar.admin}</p>
+              <p className="text-sm font-medium">{me?.name ?? ""}</p>
+              <p className="text-[11px] text-black/50">{me?.roleName ?? ""}</p>
             </div>
           </div>
         </div>

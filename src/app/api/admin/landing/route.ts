@@ -4,13 +4,13 @@ import { revalidateStore } from "@/lib/store-revalidate";
 
 /** Orden de las secciones y textos del inicio, editables desde el panel sin tocar código. */
 export async function GET() {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin("landing");
   if ("response" in auth) return auth.response;
   return Response.json(await getLandingSettings());
 }
 
 export async function PATCH(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin("landing");
   if ("response" in auth) return auth.response;
   const body = (await req.json().catch(() => null)) as Partial<LandingSettings> | null;
   if (!body) return Response.json({ error: "Datos inválidos" }, { status: 400 });

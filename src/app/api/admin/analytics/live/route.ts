@@ -2,7 +2,7 @@ import { requireAdmin } from "@/lib/auth-server";
 
 /** Consulta al Worker aparte de presencia cuántos visitantes están activos ahora mismo. */
 export async function GET() {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin("analytics");
   if ("response" in auth) return auth.response;
 
   const secret = process.env.PRESENCE_ADMIN_SECRET?.trim();

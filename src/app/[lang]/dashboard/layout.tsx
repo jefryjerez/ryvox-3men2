@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { Topbar } from "@/components/dashboard/Topbar";
 import { AdminBootstrap } from "@/components/dashboard/AdminBootstrap";
+import { AccessGuard } from "@/components/dashboard/AccessGuard";
 import { dict } from "@/i18n/server";
 
 export async function generateMetadata({ params }: LayoutProps<"/[lang]/dashboard">): Promise<Metadata> {
@@ -21,7 +22,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <Topbar />
         <main className="flex-1 px-4 pb-24 pt-4 sm:px-6 lg:px-8 lg:pb-10 lg:pt-6">
           <AdminBootstrap />
-          {children}
+          <AccessGuard>{children}</AccessGuard>
         </main>
       </div>
     </div>

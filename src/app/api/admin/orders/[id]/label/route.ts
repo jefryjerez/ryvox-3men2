@@ -4,7 +4,7 @@ import { refreshLabelUrl } from "@/lib/shipping";
 
 /** Vuelve a pedirle a Shippo el PDF de una guía ya comprada (no compra una guía nueva, no cobra de nuevo). */
 export async function POST(_req: Request, ctx: RouteContext<"/api/admin/orders/[id]/label">) {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin(["orders", "shipments"]);
   if ("response" in auth) return auth.response;
   const { id } = await ctx.params;
   const order = await getOrder(id);

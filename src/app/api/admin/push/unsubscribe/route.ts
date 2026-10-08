@@ -4,7 +4,7 @@ import { getDb, schema } from "@/db";
 
 /** Borra la suscripción push de este navegador (al desactivar las notificaciones desde el panel). */
 export async function POST(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin("any");
   if ("response" in auth) return auth.response;
   const body = (await req.json().catch(() => null)) as { endpoint?: string } | null;
   if (!body?.endpoint) return Response.json({ error: "Falta el endpoint" }, { status: 400 });

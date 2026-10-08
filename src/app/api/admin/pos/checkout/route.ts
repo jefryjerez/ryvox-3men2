@@ -22,7 +22,7 @@ interface Body {
  * y el PaymentIntent de Stripe; el cliente paga abriendo el enlace/QR en su propio teléfono.
  */
 export async function POST(req: Request) {
-  const auth = await requireAdmin();
+  const auth = await requireAdmin("pos");
   if ("response" in auth) return auth.response;
 
   const body = (await req.json().catch(() => null)) as Body | null;
