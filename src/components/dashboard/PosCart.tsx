@@ -40,7 +40,7 @@ interface GiftAddress {
 
 const emptyGiftAddress: GiftAddress = { line1: "", line2: "", city: "", region: "", zip: "", country: "Estados Unidos", phone: "" };
 
-export function PosCart() {
+export function PosCart({ hideHeader = false }: { hideHeader?: boolean }) {
   const { t, f, money, locale } = useT();
   const p = t.dash.pos;
   const allProducts = useAdmin((s) => s.products);
@@ -174,7 +174,7 @@ export function PosCart() {
   if (giftDone) {
     return (
       <>
-        <PageHeader title={p.title} subtitle={p.subtitle} />
+        {!hideHeader && <PageHeader title={p.title} subtitle={p.subtitle} />}
         <Card className="mx-auto max-w-sm p-6 text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-black text-white">
             <Gift size={24} />
@@ -193,7 +193,7 @@ export function PosCart() {
   if (charge) {
     return (
       <>
-        <PageHeader title={p.title} subtitle={p.subtitle} />
+        {!hideHeader && <PageHeader title={p.title} subtitle={p.subtitle} />}
         <Card className="mx-auto max-w-sm p-6 text-center">
           {paid ? (
             <>
@@ -234,7 +234,7 @@ export function PosCart() {
 
   return (
     <>
-      <PageHeader title={p.title} subtitle={p.subtitle} />
+      {!hideHeader && <PageHeader title={p.title} subtitle={p.subtitle} />}
       <div className="grid gap-4 xl:grid-cols-12">
         <Card className="p-5 xl:col-span-7">
           <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3">

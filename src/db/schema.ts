@@ -102,6 +102,8 @@ export const orders = sqliteTable("orders", {
   // Regalo/muestra de producto (p. ej. a un barbero que hará un video): no es una venta, no se cobra ni
   // se reporta como ingreso; solo descuenta inventario. Se excluye de las cifras de ventas del panel.
   isGift: integer("is_gift", { mode: "boolean" }).notNull().default(false),
+  // Pedido al por mayor con precios acordados y cobro por enlace/QR: no es un "carrito abandonado" mientras espera el pago, y no se borra solo.
+  isWholesale: integer("is_wholesale", { mode: "boolean" }).notNull().default(false),
   // Código de descuento aplicado en el checkout (si hubo uno), y cuánto se descontó del subtotal (centavos).
   discountCode: text("discount_code"),
   discountAmount: integer("discount_amount").notNull().default(0),
@@ -192,6 +194,22 @@ export const siteSettings = sqliteTable("site_settings", {
   updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().$defaultFn(now),
 });
 
+/** Solicitud de compra al por mayor enviada desde el formulario del landing; el dueño le pone precio y genera el cobro. */
+export const wholesaleRequests = sqliteTable("wholesale_requests", {
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  phone: text("phone").notNull().default(""),
+  message: text("message").notNull().default(""),
+  lang: text("lang").notNull().default("es"),
+  // nueva | cobro (ya se generó el cobro) | descartada
+  status: text("status").notNull().default("nueva"),
+  items: text("items", { mode: "json" }).$type<{ productId: string; name: string; qty: number }[]>().notNull().default([]),
+  orderId: text("order_id"),
+  createdAt: integer("created_at", { mode: "timestamp_ms" }).notNull().$defaultFn(now),
+  updatedAt: integer("updated_at", { mode: "timestamp_ms" }).notNull().$defaultFn(now),
+});
+
 /** Código de descuento (%) creado desde el panel, para enviar a clientes (p. ej. carritos abandonados). */
 export const discountCodes = sqliteTable("discount_codes", {
   id: text("id").primaryKey(),
@@ -224,4 +242,5 @@ export type OrderRow = typeof orders.$inferSelect;
 export type OrderItemRow = typeof orderItems.$inferSelect;
 export type DiscountCodeRow = typeof discountCodes.$inferSelect;
 export type RoleRow = typeof roles.$inferSelect;
+export type WholesaleRequestRow = typeof wholesaleRequests.$inferSelect;
 export type AdminUserRow = typeof adminUsers.$inferSelect;

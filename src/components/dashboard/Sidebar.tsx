@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { BarChart3, BellPlus, Boxes, ShieldCheck, ClipboardList, ExternalLink, LayoutGrid, LayoutTemplate, LogOut, Package, Percent, ShoppingCart, Smartphone, Truck, Users, X } from "lucide-react";
+import { BarChart3, BellPlus, Boxes, Handshake, ShieldCheck, ClipboardList, ExternalLink, LayoutGrid, LayoutTemplate, LogOut, Package, Percent, ShoppingCart, Smartphone, Truck, Users, X } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { LanguageSwitch } from "@/components/brand/LanguageSwitch";
 import { useAdmin, isLowStock } from "@/store/admin";
@@ -46,6 +46,7 @@ function NavList({ onNavigate }: { onNavigate?: () => void }) {
     { href: "/dashboard/venta", label: t.dash.nav.pos, icon: Smartphone },
     { href: "/dashboard/clientes", label: t.dash.nav.customers, icon: Users },
     { href: "/dashboard/envios", label: t.dash.nav.shipments, icon: Truck },
+    { href: "/dashboard/mayoreo", label: t.dash.nav.wholesale, icon: Handshake },
     { href: "/dashboard/equipo", label: t.dash.nav.team, icon: ShieldCheck },
   ].filter((n) => hasAccess(me, pathNeed(n.href) ?? "any")); // solo las secciones que el rol de esta persona permite
 

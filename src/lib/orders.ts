@@ -36,6 +36,20 @@ export interface DiscountCode {
   createdAt: string;
 }
 
+/** Solicitud de compra al por mayor enviada desde el formulario del landing. */
+export interface WholesaleRequest {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  message: string;
+  lang: "es" | "en";
+  status: "nueva" | "cobro" | "descartada";
+  items: { productId: string; name: string; qty: number }[];
+  orderId: string | null;
+  createdAt: string;
+}
+
 /** Persona que pidió que le avisen cuando un producto "Próximamente" salga a la venta. */
 export interface NotifyRequest {
   id: string;
@@ -99,6 +113,8 @@ export interface Order {
   shippoTransactionId?: string | null;
   /** Regalo/muestra de producto: no es una venta, no se reporta como ingreso, solo descuenta inventario. */
   isGift?: boolean;
+  /** Pedido al por mayor con precios acordados, cobrado por enlace/QR. */
+  isWholesale?: boolean;
   /** Código de descuento aplicado en el checkout, y cuánto se descontó del subtotal (centavos). */
   discountCode?: string | null;
   discountAmount?: number;

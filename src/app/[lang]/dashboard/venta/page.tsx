@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { dict } from "@/i18n/server";
-import { PosCart } from "@/components/dashboard/PosCart";
+import { PosTabs } from "@/components/dashboard/PosTabs";
 
 export async function generateMetadata({ params }: { params: Promise<{ lang: string }> }): Promise<Metadata> {
   const { lang } = await params;
@@ -9,5 +9,5 @@ export async function generateMetadata({ params }: { params: Promise<{ lang: str
 }
 
 export default function PosPage() {
-  return <PosCart />;
+  return <PosTabs />;
 }

@@ -75,6 +75,7 @@ export function rowToOrder(r: OrderRow, items: OrderItemRow[]): Order {
     labelUrl: r.labelUrl,
     shippoTransactionId: r.shippoTransactionId,
     isGift: r.isGift,
+    isWholesale: r.isWholesale,
     discountCode: r.discountCode,
     discountAmount: r.discountAmount,
     paymentIntentId: r.paymentIntentId,
@@ -280,6 +281,7 @@ export interface CreateOrderInput {
   note?: string;
   lang?: "es" | "en";
   isGift?: boolean;
+  isWholesale?: boolean;
   discountCode?: string | null;
   discountAmount?: number;
 }
@@ -310,6 +312,7 @@ export async function createOrder(input: CreateOrderInput): Promise<Order> {
     note: input.note ?? null,
     lang: input.lang ?? "es",
     isGift: input.isGift ?? false,
+    isWholesale: input.isWholesale ?? false,
     discountCode: input.discountCode ?? null,
     discountAmount: input.discountAmount ?? 0,
     trackingToken: crypto.randomUUID(),
@@ -337,7 +340,7 @@ export async function purgeStaleUnpaidOrders(days = ABANDONED_TTL_DAYS): Promise
   const stale = await db
     .select({ id: schema.orders.id, paymentIntentId: schema.orders.paymentIntentId, checkoutSessionId: schema.orders.checkoutSessionId })
     .from(schema.orders)
-    .where(and(eq(schema.orders.paid, false), lt(schema.orders.createdAt, cutoff)));
+    .where(and(eq(schema.orders.paid, false), eq(schema.orders.isWholesale, false), lt(schema.orders.createdAt, cutoff)));
   if (stale.length === 0) return 0;
 
   const stripe = getStripe();

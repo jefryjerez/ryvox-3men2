@@ -9,5 +9,7 @@ export async function GET(req: Request) {
   if ("response" in auth) return auth.response;
   // Los carritos abandonados se limpian solos: cada carga del panel borra los que ya pasaron de ABANDONED_TTL_DAYS.
   if (abandoned) await purgeStaleUnpaidOrders().catch((err) => console.error("[orders] purge", err));
-  return Response.json({ orders: await listOrders({ paid: !abandoned }) });
+  const orders = await listOrders({ paid: !abandoned });
+  // Un cobro al por mayor esperando pago no es un carrito abandonado: vive en la sección Mayoreo.
+  return Response.json({ orders: abandoned ? orders.filter((o) => !o.isWholesale) : orders });
 }

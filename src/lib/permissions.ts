@@ -12,6 +12,7 @@ export const PERMISSIONS = [
   "pos",
   "customers",
   "shipments",
+  "wholesale",
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -81,6 +82,8 @@ export function pathNeed(path: string): Need | null {
       return "customers";
     case "envios":
       return "shipments";
+    case "mayoreo":
+      return "wholesale";
     case "equipo":
       return "team";
     default:
@@ -103,6 +106,7 @@ export function firstAllowedHref(me: Pick<AdminMe, "fullAccess" | "permissions">
     ["interested", "/dashboard/interesados"],
     ["landing", "/dashboard/landing"],
     ["pos", "/dashboard/venta"],
+    ["wholesale", "/dashboard/mayoreo"],
   ];
   return order.find(([p]) => hasAccess(me, p))?.[1] ?? null;
 }

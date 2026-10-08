@@ -25,6 +25,7 @@ export function Header() {
   const NAV = [
     { href: "/productos", label: t.nav.products },
     { href: "/#ryvox", label: t.nav.about },
+    { href: "/#mayoreo", label: t.nav.wholesale },
     { href: "/#contacto", label: t.nav.contact },
   ];
 

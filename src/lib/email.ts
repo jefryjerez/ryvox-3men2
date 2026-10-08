@@ -1,6 +1,6 @@
 import "server-only";
 import { Resend } from "resend";
-import type { Order } from "@/lib/orders";
+import type { Order, WholesaleRequest } from "@/lib/orders";
 import { orderTotal } from "@/lib/orders";
 import { money } from "@/lib/format";
 import { fill, getDictionary } from "@/i18n/config";
@@ -110,6 +110,46 @@ export async function sendOrderConfirmation(order: Order) {
       `<p style="font-size:14px;color:#404040">${fill(t.confirmedText, { n: order.number })}</p>
        ${itemsTable(order)}
        <p style="font-size:13px;color:#404040;margin-top:18px"><strong>${t.shipTo}</strong><br>${a.name}<br>${a.line1}<br>${a.city}, ${a.region} ${a.zip}</p>`,
+    ),
+  );
+}
+
+/** Aviso al negocio de que llegó una solicitud de compra al por mayor desde el landing. Interno, siempre en español. */
+export async function sendAdminWholesaleRequest(req: WholesaleRequest) {
+  const to = process.env.ADMIN_EMAIL?.trim();
+  if (!to) return;
+  const { site } = cfg();
+  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  const rows = req.items.map((i) => `<tr><td style="padding:8px 0;border-bottom:1px solid #e8e8e8">${esc(i.name)}</td><td style="padding:8px 0;border-bottom:1px solid #e8e8e8;text-align:right">× ${i.qty}</td></tr>`).join("");
+  await send(
+    to,
+    `Solicitud al por mayor · ${req.name}`,
+    layout(
+      "Solicitud al por mayor",
+      `<p style="font-size:14px;color:#404040">${esc(req.name)} · ${esc(req.email)}${req.phone ? ` · ${esc(req.phone)}` : ""}</p>
+       <table style="width:100%;border-collapse:collapse;font-size:14px;margin-top:10px">${rows}</table>
+       ${req.message ? `<p style="font-size:13px;color:#404040;margin-top:16px;white-space:pre-wrap">${esc(req.message)}</p>` : ""}
+       <p style="margin:22px 0"><a href="${site}/dashboard/mayoreo" style="background:#000;color:#fff;text-decoration:none;padding:12px 22px;border-radius:999px;font-size:14px;display:inline-block">Ponerle precio</a></p>`,
+    ),
+  );
+}
+
+/** Cobro al por mayor: le manda al cliente el detalle con los precios acordados y el enlace para pagar. */
+export async function sendWholesalePaymentLink(order: Order, payUrl: string) {
+  if (!order.email) return;
+  const t = getDictionary(order.lang ?? "es").email;
+  const name = order.shippingAddress.name.split(" ")[0];
+  const esc = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  await send(
+    order.email,
+    fill(t.wholesaleSubject, { n: order.number }),
+    layout(
+      fill(t.wholesaleTitle, { name }),
+      `<p style="font-size:14px;color:#404040">${fill(t.wholesaleText, { n: order.number })}</p>
+       ${order.note ? `<p style="font-size:13px;color:#404040;background:#f2f2f2;border-radius:12px;padding:12px 14px;white-space:pre-wrap">${esc(order.note)}</p>` : ""}
+       ${itemsTable(order)}
+       <p style="margin:22px 0"><a href="${payUrl}" style="background:#000;color:#fff;text-decoration:none;padding:12px 22px;border-radius:999px;font-size:14px;display:inline-block">${t.wholesalePayButton}</a></p>
+       <p style="font-size:12px;color:#8a8a8a">${t.wholesaleSecure}</p>`,
     ),
   );
 }
